@@ -27,7 +27,7 @@ function to_in(px) { return px * ((canvasWidth_px / scale) / (fieldWidth_in * sc
 function clamp(value, min, max) { return Math.max(min, Math.min(max, value)); }
 
 const reset_face = { FRONT: 0, LEFT: 1, RIGHT: 2, REAR: 3 }; 
-const wall = { TOP: 72, LEFT: -72, RIGHT: 72, BOTTOM: -72 };
+const wall = { TOP: 70, LEFT: -70, RIGHT: 70, BOTTOM: -70 };
 
 class distance {
     constructor(reset_face, x_offset, y_offset) {
@@ -73,26 +73,21 @@ class Robot {
         ctx.restore();
     }
 
-    ray_cast(x_offset, y_offset) {
-        // angle in radians, x/y are center of robot
-        const dx = Math.cos(to_rad(this.angle_));
-        const dy = Math.sin(to_rad(this.angle_));
+    ray_cast(x_offset = 0, y_offset = 0) {
+        const angleRad = to_rad(this.angle_);
+        const dx = Math.cos(angleRad);
+        const dy = -Math.sin(angleRad);
 
-        let tMax = 0;
-        const x = this.x_ + x_offset
-        const y = this.y_ - y_offset
+        const x = this.x_ + x_offset;
+        const y = this.y_ - y_offset;
 
-        // Right wall
-        // if (dx > 0) tMax = Math.min(tMax, (wall.RIGHT - this.x_) / dx);
-        // Left wall
-        // if (dx < 0) tMax = Math.min(tMax, (0 - this.x_) / dx);
-        // Bottom wall
-        // if (dy > 0) tMax = Math.min(tMax, (canvasHeight - this.y_) / dy);
-        // Top wall
-        if (dx > 0) tMax = (wall.TOP - y) / dy;
-        console.log(dx > 0);
+        let tMax = Infinity;
 
-        // End point of ray
+        if (dx > 0) tMax = Math.min(tMax, (wall.RIGHT - x) / dx);
+        if (dx < 0) tMax = Math.min(tMax, (wall.LEFT - x) / dx);
+        if (dy > 0) tMax = Math.min(tMax, (wall.TOP - y) / dy);
+        if (dy < 0) tMax = Math.min(tMax, (wall.BOTTOM - y) / dy);
+
         const end_x = x + dx * tMax;
         const end_y = y + dy * tMax;
         const distance = Math.sqrt((end_x - x) ** 2 + (end_y - y) ** 2);
@@ -122,8 +117,8 @@ class Robot {
     chassis() {
         ctx.save();
 
-        ctx.translate(to_px(this.x_ + 72), to_px(-this.y_ + 72));
-        ctx.rotate(to_inertial_rad(this.angle_));
+        ctx.translate(to_pxx(this.x_), to_pxy(this.y_));
+        ctx.rotate(to_rad(this.angle_));
         ctx.fillStyle = this.color_;
         ctx.fillRect(-to_px(this.width_) / 2, -to_px(this.height_) / 2, to_px(this.width_), to_px(this.height_));
 
