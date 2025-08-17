@@ -18,7 +18,10 @@ const fieldHeight_in = 1.5
 const kPX = 96;
 
 function to_px(inches) { return inches / ((canvasWidth_px / scale) / (fieldWidth_in * scale)) * kPX; }
+function to_pxx(inches) { return to_px(inches + 72); }
+function to_pxy(inches) { return to_px(72 - inches); }
 function to_inertial_rad(deg) { return ((deg - 90) * (Math.PI / 180)); }
+function to_rad(deg) { return deg * Math.PI / 180; }
 function to_deg(rad) { return (rad * 180 / Math.PI); }
 function to_in(px) { return px * ((canvasWidth_px / scale) / (fieldWidth_in * scale)) / kPX; }
 function clamp(value, min, max) { return Math.max(min, Math.min(max, value)); }
@@ -40,25 +43,22 @@ class distance {
 
 
 class Robot {
-    constructor(x, y, width, height, angle = 0, odomData = false, color = '#969696ff') {
-        this.x_ = to_px(x + wall.RIGHT);
-        this.y_ = to_px(-y + wall.TOP);
-        this.width_ = to_px(width);
-        this.height_ = to_px(height);
-        this.angle_ = angle;
+    constructor(width, height, odomData = false, color = '#969696ff') {
+        this.x_ = 0;
+        this.y_ = 0;
+        this.width_ = width;
+        this.height_ = height;
+        this.angle_ = 0;
         this.odomData_ = odomData;
         this.color_ = color;
     }
 
-    bound_x(x) { return clamp(x, -72 + to_in(this.width_) / 2, 72 - to_in(this.width_) / 2) }
-    bound_y(y) { return clamp(y, -72 + to_in(this.height_) / 2, 72 - to_in(this.height_) / 2) }
+    set_x(x) { (this.x_ = clamp(x, -72 + this.width_ / 2, 72 - this.width_ / 2)); }
+    set_y(y) { this.y_ =  clamp(y, -72 + this.height_ / 2, 72 - this.height_ / 2); }
+    set_angle(angle) { this.angle_ = ((angle % 360) + 360) % 360; }
 
-    set_x(x) { (this.x_ = to_px(this.bound_x(x) + wall.RIGHT)); }
-    set_y(y) { this.y_ = to_px(-this.bound_y(y) + wall.TOP); }
-    set_angle(angle) { this.angle_ = angle; }
-
-    get_x() { return to_in(this.x_) - wall.RIGHT; }
-    get_y() { return -(to_in(this.y_) - wall.TOP); }
+    get_x() { return this.x_; }
+    get_y() { return this.y_ }
     get_angle() { return this.angle_; }
 
     odom_data() {
@@ -73,17 +73,63 @@ class Robot {
         ctx.restore();
     }
 
+    ray_cast(x_offset, y_offset) {
+        // angle in radians, x/y are center of robot
+        const dx = Math.cos(to_rad(this.angle_));
+        const dy = Math.sin(to_rad(this.angle_));
+
+        let tMax = 0;
+        const x = this.x_ + x_offset
+        const y = this.y_ - y_offset
+
+        // Right wall
+        // if (dx > 0) tMax = Math.min(tMax, (wall.RIGHT - this.x_) / dx);
+        // Left wall
+        // if (dx < 0) tMax = Math.min(tMax, (0 - this.x_) / dx);
+        // Bottom wall
+        // if (dy > 0) tMax = Math.min(tMax, (canvasHeight - this.y_) / dy);
+        // Top wall
+        if (dx > 0) tMax = (wall.TOP - y) / dy;
+        console.log(dx > 0);
+
+        // End point of ray
+        const end_x = x + dx * tMax;
+        const end_y = y + dy * tMax;
+        const distance = Math.sqrt((end_x - x) ** 2 + (end_y - y) ** 2);
+
+        return { end_x, end_y, distance };
+    }
+
+    reset_sensors() {
+        ctx.save();
+
+        const ray = this.ray_cast(0, 0);
+        ctx.beginPath();
+        ctx.moveTo(to_pxx(this.x_), to_pxy(this.y_));
+        ctx.lineTo(to_pxx(ray.end_x), to_pxy(ray.end_y));
+        ctx.strokeStyle = '#2fff74ff';
+        ctx.lineWidth = 2;
+        ctx.stroke();
+
+        ctx.font = '20px Calibri';
+        ctx.fillStyle = 'white';
+        ctx.textBaseline = 'top';
+        ctx.fillText(`Distance: ${ray.distance.toFixed(2)}`, 20, 95);
+
+        ctx.restore();
+    }
+
     chassis() {
         ctx.save();
 
-        ctx.translate(this.x_, this.y_);
+        ctx.translate(to_px(this.x_ + 72), to_px(-this.y_ + 72));
         ctx.rotate(to_inertial_rad(this.angle_));
         ctx.fillStyle = this.color_;
-        ctx.fillRect(-this.width_ / 2, -this.height_ / 2, this.width_, this.height_);
+        ctx.fillRect(-to_px(this.width_) / 2, -to_px(this.height_) / 2, to_px(this.width_), to_px(this.height_));
 
         ctx.beginPath();
         ctx.moveTo(0, 0);
-        ctx.lineTo(this.width_ / 2, 0);
+        ctx.lineTo(to_px(this.width_) / 2, 0);
         ctx.strokeStyle = 'black';
         ctx.lineWidth = 2;
         ctx.stroke();
@@ -94,6 +140,7 @@ class Robot {
     render() {
         this.odom_data();
         this.chassis();
+        this.reset_sensors();
     }
 }
 
@@ -103,7 +150,7 @@ function loadImage(src) {
     return img;
 }
 
-let fieldPerimeter = loadImage("/assets/field_perimeter.png");
+let fieldPerimeter = loadImage("./assets/field_perimeter.png");
 
 let front_reset = new distance(reset_face.FRONT, 0, 0);
 let left_reset = new distance(reset_face.LEFT, 0, 0);
@@ -111,11 +158,8 @@ let right_reset = new distance(reset_face.RIGHT, 0, 0);
 let rear_reset = new distance(reset_face.REAR, 0, 0);
 
 let robot = new Robot(
-    0, // Start X
-    0, // Start Y
     14, // Width
     14, // Height
-    0, // Start Angle
     true // Enable telemetry
 );
 
