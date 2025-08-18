@@ -1,4 +1,4 @@
-import { to_px, to_pxx, to_pxy, to_inertial_rad, to_rad, to_deg, to_in, clamp, detect_wall, get_sensor_offset, get_wall_offset, get_wall_pos, get_name, loadImage } from './util.js'
+import { to_px, to_pxx, to_pxy, to_inertial_rad, reduce_0_360, to_rad, to_deg, to_in, clamp, detect_wall, get_sensor_offset, get_wall_offset, get_wall_pos, get_name, loadImage } from './util.js'
 import { ctx, canvas, scale, reset_face, wall, canvasWidth_px, canvasHeight_px, kFrontOffset, kPX, kRightOffset, kLeftOffset, fieldWidth_in, fieldHeight_in, distance_max_range, kRearOffset, kTOPWallOffset, kRIGHTWallOffset, kLEFTWallOffset, kBOTTOMWallOffset } from './globals.js'
 
 class Robot {
@@ -34,6 +34,8 @@ class Robot {
     }
 
     draw_reset_sensors() {
+        if (!this.odomData_) { return; }
+        
         ctx.save();
 
         let text_y = 20;

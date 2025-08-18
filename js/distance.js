@@ -23,7 +23,18 @@ class Distance {
         const y_offset = this.y_offset;
         const theta = angle + wall_offset + sensor_offset; 
         
-        return (wall_pos + (Math.cos(to_rad(theta)) * (distance + y_offset)) - (Math.sin(to_rad(angle + wall_offset)) * x_offset));        
+        const reset_y = (wall == 'Top' || wall == 'Bottom');
+        const reset_x = (wall == 'Left' || wall == 'Right');
+
+        if (reset_x) {
+            return wall_pos + (Math.cos(to_rad(theta)) * distance) - (Math.cos(to_rad(angle)) * x_offset) - (Math.sin(to_rad(angle)) * y_offset)
+        }
+        if (reset_y) {
+            return wall_pos + (Math.sin(to_rad(theta)) * distance) + (Math.sin(to_rad(angle)) * x_offset) - (Math.cos(to_rad(angle)) * y_offset)
+        }
+
+        return NaN;
+
     }
 
     get_distance(x, y, angle, offset) {

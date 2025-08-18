@@ -8,8 +8,10 @@ function to_rad(deg) { return deg * Math.PI / 180; }
 function to_deg(rad) { return (rad * 180 / Math.PI); }
 function to_in(px) { return px * ((canvasWidth_px / scale) / (fieldWidth_in * scale)) / kPX; }
 function clamp(value, min, max) { return Math.max(min, Math.min(max, value)); }
+function reduce_0_360(angle) { return ((angle % 360) + 360) % 360; }
 
 function detect_wall(angle) { 
+    angle = reduce_0_360(angle);
     let name = '';
     let wall_pos = 0; 
     if (angle < 45 || angle >= 315) {
@@ -78,4 +80,4 @@ function loadImage(src) {
     return img;
 }
 
-export { to_px, to_pxx, to_pxy, to_inertial_rad, to_rad, to_deg, to_in, clamp, detect_wall, get_sensor_offset, get_wall_offset, get_wall_pos, get_name, loadImage };
+export { to_px, to_pxx, to_pxy, to_inertial_rad, to_rad, to_deg, to_in, clamp, detect_wall, get_sensor_offset, get_wall_offset, get_wall_pos, reduce_0_360, get_name, loadImage };
