@@ -36,18 +36,61 @@ const kRightOffset = 90;
 const kLeftOffset = 270;
 const kRearOffset = 180;
 
-function get_offset(index) {
-    switch (index) {
-        case 0:
-            return kFrontOffset;
-        case 1:
-            return kLeftOffset;
-        case 2:
-            return kRightOffset;
-        case 3:
-            return kRearOffset;
-        default:
-            return 0;
+const kTOPWallOffset = 180;
+const kRIGHTWallOffset = 90;
+const kLEFTWallOffset = 90;
+const kBOTTOMWallOffset = 180;
+
+function detect_wall(angle) { 
+    let name = '';
+    let wall_pos = 0; 
+    if (angle < 45 || angle >= 315) {
+        name = 'Top';
+        wall_pos = wall.TOP;
+        return {name, wall_pos};
+    } 
+    if (angle < 135) {
+        name = 'Right';
+        wall_pos = wall.RIGHT;
+        return {name, wall_pos};
+    } 
+    if (angle < 225) {
+        name = 'Bottom';
+        wall_pos = wall.BOTTOM;
+        return {name, wall_pos};
+    }
+    name = 'Left';
+    wall_pos = wall.LEFT;
+    return {name, wall_pos};
+}
+
+function get_sensor_offset(index) {
+    switch (index) { 
+        case 0: return kFrontOffset;
+        case 1: return kLeftOffset;
+        case 2: return kRightOffset;
+        case 3: return kRearOffset;
+        default: return 0;
+    }    
+}
+
+function get_wall_offset(wall) {
+    switch (wall) {
+        case "Top": return kTOPWallOffset;
+        case "Left": return kLEFTWallOffset;
+        case "Right": return kRIGHTWallOffset;
+        case "Bottom": return kBOTTOMWallOffset;
+        default: return 0;
+    }    
+}
+
+function get_wall_pos(wall_) {
+    switch (wall_) {
+        case "Top": return wall.TOP;
+        case "Left": return wall.LEFT;
+        case "Right": return wall.RIGHT;
+        case "Bottom": return wall.BOTTOM;
+        default: return 0;
     }    
 }
 
@@ -68,8 +111,20 @@ class distance {
         this.render = render;
     }
 
-    get_reset_axis(reset_face, wall, angle) {
+    get_reset_axis(reset_sensor, wall, x, y, angle, offset) {
+        if (reset_sensor != this.reset_face) { return; }
 
+        // From mikLib distance.cpp
+        const sensor_offset = offset;
+        const wall_offset = get_wall_offset(wall);
+        const wall_pos = get_wall_pos(wall);
+        
+        const distance = this.get_distance(x, y, angle, offset);
+        const x_offset = this.x_offset;
+        const y_offset = this.y_offset;
+        const theta = angle + wall_offset + sensor_offset; 
+
+        return (wall_pos + (Math.cos(to_rad(theta)) * (distance + y_offset)) - (Math.sin(to_rad(angle + wall_offset)) * x_offset));        
     }
 
     get_distance(x, y, angle, offset) {
@@ -82,8 +137,8 @@ class distance {
         const dx = Math.cos(angle);
         const dy = -Math.sin(angle);
 
-        const offset_x = this.x_offset * Math.cos(global_angle) + this.y_offset * -Math.sin(global_angle);
-        const offset_y = this.x_offset * -Math.sin(global_angle) - this.y_offset * Math.cos(global_angle);
+        const offset_x = this.y_offset * Math.cos(global_angle) + this.x_offset * -Math.sin(global_angle);
+        const offset_y = this.y_offset * -Math.sin(global_angle) - this.x_offset * Math.cos(global_angle);
 
         const x = robot_x + offset_x;
         const y = robot_y + offset_y;
@@ -151,7 +206,7 @@ class Robot {
         let text_height = 95;
         for (const distance of Object.values(reset_face)) {
             if (this.reset_sensors[distance].render == false) { continue; }
-            let offset = get_offset(distance);
+            let offset = get_sensor_offset(distance);
             const ray = this.reset_sensors[distance].ray_cast(this.x_, this.y_, this.angle_, offset);
 
             ctx.beginPath();
@@ -203,6 +258,16 @@ class Robot {
         this.draw_odom_data();
         this.draw_chassis();
         this.draw_reset_sensors();
+
+        var x = reset_sensors[reset_face.FRONT].get_reset_axis(reset_face.FRONT, detect_wall(this.angle_).name, this.x_, this.y_, this.angle_, get_sensor_offset(reset_face.FRONT)); 
+        ctx.save();
+        ctx.font = '20px Calibri';
+        ctx.fillStyle = 'white';
+        ctx.textBaseline = 'top';
+        ctx.fillText(`${x.toFixed(5)}`, 20, 200);
+        ctx.fillText(`${wall, detect_wall(this.angle_).name}`, 20, 225);
+        ctx.restore();
+        
     }
 }
 
@@ -226,6 +291,8 @@ let robot = new Robot(
     reset_sensors,
     true // Enable telemetry
 );
+
+robot.set_angle(180);
 
 function gameUpdate() {
     move = .5;
