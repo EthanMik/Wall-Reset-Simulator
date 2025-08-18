@@ -7,7 +7,14 @@ import { control } from './control.js'
 let fieldPerimeter = loadImage("./assets/field_perimeter.png");
 
 let reset_sensors = {};
-reset_sensors[reset_face.FRONT] = new Distance(reset_face.FRONT, 5, 3.5, '#ff4949ff', true);
+reset_sensors[reset_face.FRONT] = new Distance(
+    reset_face.FRONT, 
+    5, // Sensor X-Offset
+    3.5, // Sensor Y-Offset
+    '#ff4949ff', // Laser Color
+    true // Render Sensor
+);
+
 reset_sensors[reset_face.LEFT] = new Distance(reset_face.LEFT, -6, -4, '#68ff7cff', false);
 reset_sensors[reset_face.RIGHT] = new Distance(reset_face.RIGHT, 3, -5, '#f5862cff', false);
 reset_sensors[reset_face.REAR] = new Distance(reset_face.REAR, -5, 4, '#1100ffff', false);
