@@ -6,7 +6,7 @@
 - **[S]** Move Right
 - **[D]** Move Down
 - **[Left Arrow]** Turn Left
-- **[Left Arrow]** Turn Right
+- **[Right Arrow]** Turn Right
 - **[1]** Toggle Front Laser Visibility
 - **[2]** Toggle Left Laser Visibility
 - **[3]** Toggle Right Laser Visibility
