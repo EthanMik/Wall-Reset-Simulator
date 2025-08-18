@@ -14,4 +14,4 @@
 # About
   This simulation was created in order to test the wall reset math in [mikLib](https://github.com/EthanMik/mikLib), 
   The math can be found in js/distance.js. This simulation uses the coordinate system from [Path.Jerryio](https://path.jerryio.com/).
-  Sensor offsets can be adjusted in js/script.js. Offsets are centered around robots origin.
+  Sensor offsets can be adjusted in js/script.js. Offsets are centered around robots origin. Sensor range used is 78 inches.
