@@ -11,6 +11,7 @@
 - **[2]** Toggle Left Laser Visibility
 - **[3]** Toggle Right Laser Visibility
 - **[4]** Toggle Rear Laser Visibility
+- **[Left Click]** Toggle Field View
 # About
   This simulation was created in order to test the wall reset math in [mikLib](https://github.com/EthanMik/mikLib), 
   The math can be found in js/distance.js. This simulation uses the coordinate system from [Path.Jerryio](https://path.jerryio.com/).
