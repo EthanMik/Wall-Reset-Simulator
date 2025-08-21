@@ -2,9 +2,7 @@ import { to_px, to_pxx, to_pxy, to_inertial_rad, to_rad, to_deg, to_in, clamp, d
 import { ctx, canvas, scale, reset_face, wall, canvasWidth_px, canvasHeight_px, kFrontOffset, kPX, kRightOffset, kLeftOffset, fieldWidth_in, fieldHeight_in, distance_max_range, kRearOffset, kTOPWallOffset, kRIGHTWallOffset, kLEFTWallOffset, kBOTTOMWallOffset } from './globals.js'
 import { Robot } from './robot.js'
 import { Distance } from './distance.js'
-import { control } from './control.js'
-
-let fieldPerimeter = loadImage("./assets/field_perimeter.png");
+import { control, draw_field_control } from './control.js'
 
 let reset_sensors = {};
 reset_sensors[reset_face.FRONT] = new Distance(
@@ -27,7 +25,7 @@ let robot = new Robot(
 );
 
 function update() {
-    ctx.drawImage(fieldPerimeter, 0, 0, canvas.width, canvas.height);
+    draw_field_control();
     robot.render();
     control(robot);
 }

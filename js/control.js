@@ -14,8 +14,52 @@ document.addEventListener('keyup', (event) => {
     keysHandled[event.key] = false;
 });
 
+canvas.addEventListener('mousedown', (event) => {
+  if (event.button === 0) {
+    keysPressed.MouseLeft = true;
+  }
+});
+
+window.addEventListener('mouseup', (event) => {
+  if (event.button === 0) {
+    keysPressed.MouseLeft = false;
+    keysHandled.MouseLeft = false;
+  }
+});
+
 function new_press(key) {
     return keysPressed[key] && !keysHandled[key];
+}
+
+let empty_field = loadImage("./assets/empty_field.png");
+let push_back_skills_field = loadImage("./assets/high_stakes_skills.png");
+let high_stakes_skills_field = loadImage("./assets/push_back_skills.png");
+
+function draw_field(field) {
+    switch(field) {
+        case 0:
+            ctx.drawImage(empty_field, 0, 0, canvas.width, canvas.height);
+            return;
+        case 1:
+            ctx.drawImage(push_back_skills_field, 0, 0, canvas.width, canvas.height);
+            return;
+        case 2:
+            ctx.drawImage(high_stakes_skills_field, 0, 0, canvas.width, canvas.height);
+            return;
+    }
+}
+
+let field = 0;
+
+function draw_field_control() {
+    if (new_press('MouseLeft')) {
+        keysHandled['MouseLeft'] = true;
+        field++;
+        if (field >= 3) {
+            field = 0;
+        }
+    }
+    draw_field(field);
 }
 
 let render_front_distance = true;
@@ -67,4 +111,4 @@ function control(robot) {
     } 
 }
 
-export { control };
+export { control, draw_field_control };
